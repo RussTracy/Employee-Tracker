@@ -25,8 +25,10 @@ connection.connect(err => {
     startApp();
 });
 
+// Start app with npm run
 const startApp = () => {
 
+    // Main menu questions
     const mainQuestions = () => {
         return inquirer.prompt([
             {
@@ -76,7 +78,7 @@ const startApp = () => {
             })
     };
 
-
+    // Display all Departments
     displayDepartments = () => {
         const query = connection.query(
             'SELECT department.id, department_name AS Department FROM department',
@@ -90,6 +92,7 @@ const startApp = () => {
         );
     };
 
+    // Display all Roles
     displayRoles = () => {
         const query = connection.query(
             `SELECT employee_role.id, title AS "Job Title", department_name AS Department, salary AS Salary
@@ -106,6 +109,7 @@ const startApp = () => {
         );
     };
 
+    // Display all Employees
     displayEmployees = () => {
         const query = connection.query(
             `SELECT employee.id, employee.first_name AS "First Name", employee.last_name AS "Last Name", title AS "Job Title", department_name AS Department, salary AS Salary, CONCAT(manager.first_name, ' ', manager.last_name) AS Manager
@@ -126,6 +130,7 @@ const startApp = () => {
         );
     };
 
+    // Add a new Department
     addDepartment = () => {
         return inquirer.prompt([
             {
@@ -157,6 +162,7 @@ const startApp = () => {
             })
     };
 
+    // Add a new Role using updated department list 
     addRole = () => {
         let choicesDepartments = [];
 
@@ -176,6 +182,7 @@ const startApp = () => {
         );
     }
 
+    // Questions to add a new Role
     promptRole = (choicesDepartment) => {
 
         return inquirer.prompt([
@@ -227,6 +234,7 @@ const startApp = () => {
             })
     };
 
+    // Add a new Employee using updated Role and Manager lists
     addEmployee = () => {
         let choicesRoles = [];
         let choicesManager = [];
@@ -263,6 +271,7 @@ const startApp = () => {
         );
     }
 
+    // Questions to add a new Employee
     employeePrompt = (choicesRoles, choicesManager) => {
         return inquirer.prompt([
             {
@@ -319,6 +328,7 @@ const startApp = () => {
             })
     };
 
+    // Update an employee role with using updated Role and Employee lists
     updateRole = () => {
         let choicesRoles = [];
         let choicesEmployee = [];
@@ -355,6 +365,7 @@ const startApp = () => {
         );
     }
 
+    // Questions to update an employee role
     updateRolePrompt = (choicesEmployee, choicesRoles) => {
         return inquirer.prompt([
             {
@@ -392,6 +403,8 @@ const startApp = () => {
                 return true;
             })
     }
+
+    // Initiate main menu
     mainQuestions()
 };
 
