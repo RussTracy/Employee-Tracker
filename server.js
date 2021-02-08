@@ -15,7 +15,7 @@ app.use(express.json());
 const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: 'mysqlOcjade#1014',
+    password: '***********',
     database: 'employee_db'
 })
 
@@ -24,7 +24,6 @@ connection.connect(err => {
     console.log('connected as id ' + connection.threadId + '\n');
     startApp();
 });
-
 
 const startApp = () => {
 
@@ -35,14 +34,14 @@ const startApp = () => {
                 name: 'menu',
                 message: 'What would you like to do?',
                 choices: [
+                    'Finished',
                     'View All Departments',
                     'View All Roles',
                     'View All Employees',
                     'Add a Department',
                     'Add a Role',
                     'Add an Employee',
-                    'Update an Employee Role',
-                    'Finished'
+                    'Update an Employee Role'
                 ],
             }
 
@@ -74,10 +73,9 @@ const startApp = () => {
                     return false;
                 }
 
-            });
-
-
+            })
     };
+
 
     displayDepartments = () => {
         const query = connection.query(
@@ -87,6 +85,7 @@ const startApp = () => {
                 console.log('\n Displaying all Departments...\n');
                 console.table(res);
                 mainQuestions();
+                return true;
             }
         );
     };
@@ -102,6 +101,7 @@ const startApp = () => {
                 console.log('\n Displaying all Roles...\n');
                 console.table(res);
                 mainQuestions();
+                return true;
             }
         );
     };
@@ -121,6 +121,7 @@ const startApp = () => {
                 console.log('\n Displaying all Employees...\n');
                 console.table(res);
                 mainQuestions();
+                return true;
             }
         );
     };
@@ -151,10 +152,31 @@ const startApp = () => {
                         console.log(res.affectedRows + ' product inserted!\n');
                     });
                 console.log('Department Added');
+                displayDepartments();
+                return true;
             })
     };
 
     addRole = () => {
+        let choicesDepartments = [];
+
+        connection.query(
+            'SELECT id AS value, department_name AS Department FROM department',
+            function (err, res) {
+                if (err) throw err;
+                for (let i = 0; i < res.length; i++) {
+                    const department = res[i];
+                    choicesDepartments.push({
+                        name: department.Department,
+                        value: department.value
+                    });
+                }
+                promptRole(choicesDepartments)
+            }
+        );
+    }
+
+    promptRole = (choicesDepartment) => {
 
         return inquirer.prompt([
             {
@@ -187,25 +209,7 @@ const startApp = () => {
                 type: 'list',
                 name: 'department_id',
                 message: 'What department is this role assigned?',
-                choices: [
-                    {
-                        name: 'Sales',
-                        value: 1,
-                    },
-                    {
-                        name: 'Engineering',
-                        value: 2,
-                    },
-                    {
-                        name: 'Finance',
-                        value: 3,
-                    },
-                    {
-                        name: 'Legal',
-                        value: 4,
-                    },
-
-                ],
+                choices: choicesDepartment,
             }
         ])
             .then(answers => {
@@ -218,10 +222,48 @@ const startApp = () => {
                         console.log(res.affectedRows + ' new role inserted!\n');
                     });
                 console.log('New Role Added');
+                displayRoles();
+                return true;
             })
     };
 
     addEmployee = () => {
+        let choicesRoles = [];
+        let choicesManager = [];
+
+        connection.query(
+            'SELECT id AS value, title AS Role FROM employee_role',
+            function (err, res) {
+                if (err) throw err;
+                for (let i = 0; i < res.length; i++) {
+                    const roles = res[i];
+                    choicesRoles.push({
+                        name: roles.Role,
+                        value: roles.value
+                    });
+                }
+            }
+        );
+
+        connection.query(
+            `SELECT employee.id AS value, CONCAT(employee.first_name, ' ', employee.last_name) AS Manager
+            FROM employee;`,
+            function (err, res) {
+                if (err) throw err;
+                for (let i = 0; i < res.length; i++) {
+                    const roles = res[i];
+                    choicesManager.push({
+                        name: roles.Manager,
+                        value: roles.value
+                    });
+                }
+
+                employeePrompt(choicesRoles, choicesManager)
+            }
+        );
+    }
+
+    employeePrompt = (choicesRoles, choicesManager) => {
         return inquirer.prompt([
             {
                 type: 'input',
@@ -253,80 +295,13 @@ const startApp = () => {
                 type: 'list',
                 name: 'employee_role_id',
                 message: 'What is the role assigned to the new Employee?',
-                choices: [
-                    {
-                        name: 'Sales Lead',
-                        value: 1,
-                    },
-                    {
-                        name: 'Salesperson',
-                        value: 2,
-                    },
-                    {
-                        name: 'Lead Engineer',
-                        value: 3,
-                    },
-                    {
-                        name: 'Software Engineer',
-                        value: 4,
-                    },
-                    {
-                        name: 'Account Manager',
-                        value: 5,
-                    },
-                    {
-                        name: 'Accountant',
-                        value: 6,
-                    },
-                    {
-                        name: 'Lawyer',
-                        value: 7,
-                    },
-                    {
-                        name: 'Legal Team Lead',
-                        value: 8,
-                    },
-
-                ],
+                choices: choicesRoles,
             },
             {
                 type: 'list',
                 name: 'manager_id',
                 message: 'Who is the manager assigned to the new Employee?',
-                choices: [
-                    {
-                        name: 'No Manager',
-                        value: null,
-                    },
-                    {
-                        name: 'John Doe',
-                        value: 1,
-                    },
-                    {
-                        name: 'Mike Chan',
-                        value: 2,
-                    },
-                    {
-                        name: 'Ashley Rodriguez',
-                        value: 3,
-                    },
-                    {
-                        name: 'Kevin Tupik',
-                        value: 4,
-                    },
-                    {
-                        name: 'Malia Brown',
-                        value: 5,
-                    },
-                    {
-                        name: 'Sarah Lourd',
-                        value: 6,
-                    },
-                    {
-                        name: 'Tom Allen',
-                        value: 7,
-                    },
-                ],
+                choices: choicesManager,
             }
         ])
             .then(answers => {
@@ -339,84 +314,60 @@ const startApp = () => {
                         console.log(res.affectedRows + ' new employee inserted!\n');
                     });
                 console.log('New Employee Added');
+                displayEmployees();
+                return true;
             })
     };
+
     updateRole = () => {
+        let choicesRoles = [];
+        let choicesEmployee = [];
+
+        connection.query(
+            'SELECT id AS value, title AS Role FROM employee_role',
+            function (err, res) {
+                if (err) throw err;
+                for (let i = 0; i < res.length; i++) {
+                    const roles = res[i];
+                    choicesRoles.push({
+                        name: roles.Role,
+                        value: roles.value
+                    });
+                }
+            }
+        );
+
+        connection.query(
+            `SELECT employee.id AS value, CONCAT(employee.first_name, ' ', employee.last_name) AS Manager
+            FROM employee;`,
+            function (err, res) {
+                if (err) throw err;
+                for (let i = 0; i < res.length; i++) {
+                    const roles = res[i];
+                    choicesEmployee.push({
+                        name: roles.Manager,
+                        value: roles.value
+                    });
+                }
+
+                updateRolePrompt(choicesEmployee, choicesRoles)
+            }
+        );
+    }
+
+    updateRolePrompt = (choicesEmployee, choicesRoles) => {
         return inquirer.prompt([
             {
                 type: 'list',
                 name: 'id',
                 message: 'Select an Employee to modify Role?',
-                choices: [
-                    {
-                        name: 'John Doe',
-                        value: 1,
-                    },
-                    {
-                        name: 'Mike Chan',
-                        value: 2,
-                    },
-                    {
-                        name: 'Ashley Rodriguez',
-                        value: 3,
-                    },
-                    {
-                        name: 'Kevin Tupik',
-                        value: 4,
-                    },
-                    {
-                        name: 'Malia Brown',
-                        value: 5,
-                    },
-                    {
-                        name: 'Sarah Lourd',
-                        value: 6,
-                    },
-                    {
-                        name: 'Tom Allen',
-                        value: 7,
-                    },
-                ],
+                choices: choicesEmployee,
             },
             {
                 type: 'list',
                 name: 'employee_role_id',
                 message: 'What is the new Role assigned to the Employee?',
-                choices: [
-                    {
-                        name: 'Sales Lead',
-                        value: 1,
-                    },
-                    {
-                        name: 'Salesperson',
-                        value: 2,
-                    },
-                    {
-                        name: 'Lead Engineer',
-                        value: 3,
-                    },
-                    {
-                        name: 'Software Engineer',
-                        value: 4,
-                    },
-                    {
-                        name: 'Account Manager',
-                        value: 5,
-                    },
-                    {
-                        name: 'Accountant',
-                        value: 6,
-                    },
-                    {
-                        name: 'Lawyer',
-                        value: 7,
-                    },
-                    {
-                        name: 'Legal Team Lead',
-                        value: 8,
-                    },
-
-                ],
+                choices: choicesRoles,
             },
 
         ])
@@ -437,13 +388,12 @@ const startApp = () => {
                         console.log(res.affectedRows + ' employee role updated!\n');
                     });
                 console.log('Employee\'s Role Updated!');
+                displayEmployees();
+                return true;
             })
-    };
-
+    }
     mainQuestions()
-
 };
-
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
