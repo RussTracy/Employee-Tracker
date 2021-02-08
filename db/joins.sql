@@ -18,8 +18,6 @@ LEFT JOIN employee manager
     ON manager.id = employee.manager_id;
 
 
-
-
 -- SELECT employee.id, employee.first_name, employee.last_name, title, department_name, salary, CONCAT(manager.first_name, ' ', manager.last_name) AS Manager
 -- FROM employee
 -- INNER JOIN employee_role
